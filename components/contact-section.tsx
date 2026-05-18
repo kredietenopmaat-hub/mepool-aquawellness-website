@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Phone, Mail, MapPin, Clock, Send, MessageCircle } from "lucide-react"
+import { Phone, Mail, MapPin, Clock, Send } from "lucide-react"
 
 const contactInfo = [
   {
@@ -262,15 +262,6 @@ export function ContactSection() {
         </div>
       </section>
 
-      {/* Floating WhatsApp Button */}
-      <a
-        href="https://wa.me/32471040416"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-50 bg-green-500 hover:bg-green-600 text-white rounded-full p-4 shadow-lg transition-all duration-300"
-      >
-        <MessageCircle className="w-7 h-7" />
-      </a>
-    </>
+         </>
   )
 }
