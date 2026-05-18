@@ -42,10 +42,30 @@ export function ContactSection() {
     message: "",
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    console.log("Form submitted:", formData)
-  }
+const handleSubmit = (e: React.FormEvent) => {
+  e.preventDefault()
+
+  const subject = encodeURIComponent(
+    `MEPOOL Contactformulier - ${formData.subject}`
+  )
+
+  const body = encodeURIComponent(
+    `
+Naam: ${formData.name}
+
+E-mail: ${formData.email}
+
+Telefoon: ${formData.phone}
+
+Onderwerp: ${formData.subject}
+
+Bericht:
+${formData.message}
+`
+  )
+
+  window.location.href = `mailto:info@mepool.be?subject=${subject}&body=${body}`
+}
 
   return (
     <>
