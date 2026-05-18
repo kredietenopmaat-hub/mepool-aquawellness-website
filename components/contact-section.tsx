@@ -42,31 +42,42 @@ export function ContactSection() {
     message: "",
   })
 
-const handleSubmit = (e: React.FormEvent) => {
+const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault()
 
-  const subject = encodeURIComponent(
-    `MEPOOL Contactformulier - ${formData.subject}`
-  )
+  try {
+    const response = await fetch("https://formspree.io/f/mnjrqkpw", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        subject: formData.subject,
+        message: formData.message,
+      }),
+    })
 
-  const body = encodeURIComponent(
-    `
-Naam: ${formData.name}
+    if (response.ok) {
+      alert("Bericht succesvol verzonden!")
 
-E-mail: ${formData.email}
-
-Telefoon: ${formData.phone}
-
-Onderwerp: ${formData.subject}
-
-Bericht:
-${formData.message}
-`
-  )
-
-  window.location.href = `mailto:info@mepool.be?subject=${subject}&body=${body}`
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        subject: "",
+        message: "",
+      })
+    } else {
+      alert("Er ging iets mis. Probeer opnieuw.")
+    }
+  } catch (error) {
+    alert("Netwerkfout. Probeer later opnieuw.")
+  }
 }
-
   return (
     <>
       <section id="contact" className="py-20 lg:py-32">
