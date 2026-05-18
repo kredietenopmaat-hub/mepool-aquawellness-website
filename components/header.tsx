@@ -51,7 +51,7 @@ export function Header() {
           <div className="hidden lg:flex items-center gap-4">
             <a href="tel:+32123456789" className="flex items-center gap-2 text-sm text-white/80 hover:text-white transition-colors">
               <Phone className="w-4 h-4" />
-              <span>+32 123 456 789</span>
+              <span>+32 471 040 416</span>
             </a>
             <Button asChild className="bg-white text-[#1a3a5c] hover:bg-white/90">
               <Link href="#contact">Contacteer ons</Link>
