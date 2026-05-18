@@ -51,7 +51,7 @@ export function ContactSection() {
     <>
       <section id="contact" className="py-20 lg:py-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
+
           <div className="max-w-3xl mx-auto text-center mb-16">
             <span className="text-sm font-medium text-accent uppercase tracking-wider">
               Contact
@@ -68,7 +68,7 @@ export function ContactSection() {
           </div>
 
           <div className="grid lg:grid-cols-5 gap-12 lg:gap-16">
-            
+
             <div className="lg:col-span-2 space-y-8">
               <div>
                 <h3 className="font-serif text-2xl font-semibold text-foreground mb-6">
@@ -105,6 +105,38 @@ export function ContactSection() {
                     </div>
                   </a>
                 ))}
+              </div>
+
+              {/* Social Buttons */}
+              <div className="flex flex-wrap gap-4 pt-4">
+
+                <a
+                  href="https://wa.me/32471040416"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-green-500 hover:bg-green-600 text-white px-5 py-3 rounded-lg font-medium transition-colors"
+                >
+                  WhatsApp
+                </a>
+
+                <a
+                  href="#"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg font-medium transition-colors"
+                >
+                  Facebook
+                </a>
+
+                <a
+                  href="#"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-pink-500 hover:bg-pink-600 text-white px-5 py-3 rounded-lg font-medium transition-colors"
+                >
+                  Instagram
+                </a>
+
               </div>
             </div>
 
