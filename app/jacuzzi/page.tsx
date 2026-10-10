@@ -29,6 +29,31 @@ export default function JacuzziPage() {
             className="w-full max-w-3xl h-auto rounded-lg"
           />
         </div>
+        <section className="mt-12 max-w-3xl">
+          <h2 className="font-serif text-3xl font-semibold text-foreground mb-6">
+            Technische specificaties
+          </h2>
+          <dl className="grid grid-cols-2 gap-x-4 sm:gap-x-8 gap-y-4">
+            <dt className="font-medium text-foreground">Capaciteit</dt>
+            <dd className="text-muted-foreground">2 ligplaatsen + 3 zitplaatsen</dd>
+            <dt className="font-medium text-foreground">Afmetingen</dt>
+            <dd className="text-muted-foreground">220 × 220 × 82 cm</dd>
+            <dt className="font-medium text-foreground">Massagejets</dt>
+            <dd className="text-muted-foreground">88</dd>
+            <dt className="font-medium text-foreground">Massagepompen</dt>
+            <dd className="text-muted-foreground">3 × 2 pk</dd>
+            <dt className="font-medium text-foreground">Verwarming</dt>
+            <dd className="text-muted-foreground">3 kW</dd>
+            <dt className="font-medium text-foreground">Stroomaansluiting</dt>
+            <dd className="text-muted-foreground">32 A</dd>
+            <dt className="font-medium text-foreground">Waterbehandeling</dt>
+            <dd className="text-muted-foreground">UV-C</dd>
+            <dt className="font-medium text-foreground">Bediening</dt>
+            <dd className="text-muted-foreground">Balboa TP600</dd>
+            <dt className="font-medium text-foreground">Muziek</dt>
+            <dd className="text-muted-foreground">Ingebouwde Bluetooth</dd>
+          </dl>
+        </section>
       </div>
     </main>
   )
