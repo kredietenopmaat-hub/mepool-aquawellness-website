@@ -59,9 +59,22 @@ export default function JacuzziPage() {
           <h2 className="font-serif text-3xl font-semibold text-foreground mb-6">
             Plan uw showroombezoek
           </h2>
-          <Link href="/#contact" className="font-medium text-primary hover:underline">
-            Via e-mail
-          </Link>
+          <div className="flex flex-wrap gap-4">
+            <Link href="/#contact" className="font-medium text-primary hover:underline">
+              Via e-mail
+            </Link>
+            <a
+              href="https://wa.me/32470246430?text=Hallo%2C%20ik%20heb%20interesse%20in%20de%20Neptune%20V2%20jacuzzi%20en%20wil%20graag%20een%20afspraak%20maken."
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-primary hover:underline"
+            >
+              Via WhatsApp
+            </a>
+            <a href="tel:+32470246430" className="font-medium text-primary hover:underline">
+              Telefonisch
+            </a>
+          </div>
         </section>
       </div>
     </main>
