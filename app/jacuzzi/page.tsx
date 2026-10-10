@@ -1,3 +1,5 @@
+import Image from "next/image"
+
 export default function JacuzziPage() {
   return (
     <main className="min-h-screen bg-background py-20 lg:py-32">
@@ -11,6 +13,22 @@ export default function JacuzziPage() {
         <p className="text-lg text-muted-foreground">
           Nu voor slechts € 9.999!
         </p>
+        <div className="mt-8 space-y-6">
+          <Image
+            src="/images/neptune-soir.jpeg"
+            alt="Neptune V2 jacuzzi bij avond"
+            width={4800}
+            height={3584}
+            className="w-full h-auto rounded-lg"
+          />
+          <Image
+            src="/images/Neptune-jacuzzi-market-spas (1).png"
+            alt="Neptune V2 jacuzzi productafbeelding"
+            width={7680}
+            height={7680}
+            className="w-full max-w-xl h-auto rounded-lg"
+          />
+        </div>
       </div>
     </main>
   )
