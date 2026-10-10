@@ -76,6 +76,9 @@ export default function JacuzziPage() {
             </a>
           </div>
         </section>
+        <Link href="/" className="inline-block mt-12 font-medium text-primary hover:underline">
+          ← Terug naar de homepage
+        </Link>
       </div>
     </main>
   )
