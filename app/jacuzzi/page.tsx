@@ -1,4 +1,5 @@
 import Image from "next/image"
+import Link from "next/link"
 
 export default function JacuzziPage() {
   return (
@@ -53,6 +54,14 @@ export default function JacuzziPage() {
             <dt className="font-medium text-foreground">Muziek</dt>
             <dd className="text-muted-foreground">Ingebouwde Bluetooth</dd>
           </dl>
+        </section>
+        <section className="mt-12 max-w-3xl">
+          <h2 className="font-serif text-3xl font-semibold text-foreground mb-6">
+            Plan uw showroombezoek
+          </h2>
+          <Link href="/#contact" className="font-medium text-primary hover:underline">
+            Via e-mail
+          </Link>
         </section>
       </div>
     </main>
