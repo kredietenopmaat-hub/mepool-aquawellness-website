@@ -19,14 +19,14 @@ export default function JacuzziPage() {
             alt="Neptune V2 jacuzzi bij avond"
             width={4800}
             height={3584}
-            className="w-full h-auto rounded-lg"
+            className="w-full max-w-3xl h-auto rounded-lg"
           />
           <Image
             src="/images/Neptune-jacuzzi-market-spas (1).png"
             alt="Neptune V2 jacuzzi productafbeelding"
             width={7680}
             height={7680}
-            className="w-full max-w-xl h-auto rounded-lg"
+            className="w-full max-w-3xl h-auto rounded-lg"
           />
         </div>
       </div>
