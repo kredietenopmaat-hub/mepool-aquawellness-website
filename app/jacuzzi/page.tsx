@@ -72,7 +72,7 @@ export default function JacuzziPage() {
               Via WhatsApp
             </a>
             <a href="tel:+32470246430" className="font-medium text-primary hover:underline">
-              Telefonisch
+              Telefonisch: +32 470 24 64 30
             </a>
           </div>
         </section>
