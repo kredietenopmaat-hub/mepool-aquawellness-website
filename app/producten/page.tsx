@@ -168,7 +168,7 @@ export default function ProductenPage() {
                     </div>
                     <div className="flex gap-3">
                       <Button asChild size="lg">
-                        <Link href="#contact">
+                        <Link href="/#contact">
                           Vraag offerte aan
                           <ArrowRight className="w-4 h-4 ml-2" />
                         </Link>
