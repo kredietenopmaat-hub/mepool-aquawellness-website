@@ -1,4 +1,4 @@
-import { Wrench, Thermometer, Shield, Sun } from "lucide-react"
+import { Wrench, Thermometer, Shield, Sun, Waves } from "lucide-react"
 import Link from "next/link"
 
 const services = [
@@ -25,6 +25,12 @@ const services = [
     title: "Infrarood Cabines",
     description: "Premium infrarood cabines voor diepe ontspanning en gezondheidsvoordelen. Ontdek wellness in uw eigen huis.",
     href: "/producten#infrarood",
+  },
+  {
+    icon: Waves,
+    title: "Jacuzzi",
+    description: "Ontdek onze Neptune V2 jacuzzi en geniet van ultieme ontspanning bij u thuis.",
+    href: "/jacuzzi",
   },
 ]
 
