@@ -10,14 +10,14 @@ const contactInfo = [
   {
     icon: Phone,
     label: "Telefoon",
-    value: "+32 471 040 416",
-    href: "tel:+32471040416",
+    value: "+32 470 24 64 30",
+    href: "tel:+32470246430",
   },
   {
     icon: Mail,
     label: "E-mail",
-    value: "info@mepool.be",
-    href: "mailto:info@mepool.be",
+    value: "info@aqua-wellness.com",
+    href: "mailto:info@aqua-wellness.com",
   },
   {
     icon: MapPin,
@@ -142,7 +142,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               <div className="flex flex-wrap gap-4 pt-4">
 
                 <a
-                  href="https://wa.me/32471040416"
+                  href="https://wa.me/32470246430"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="bg-green-500 hover:bg-green-600 text-white px-5 py-3 rounded-lg font-medium transition-colors"
