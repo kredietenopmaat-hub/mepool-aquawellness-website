@@ -5,6 +5,8 @@ export type ProductImage = {
   height: number
 }
 
+export type PriceMode = "fixed" | "from"
+
 export type Product = {
   id: string
   category: string
@@ -14,6 +16,7 @@ export type Product = {
   features: string[]
   specifications: { label: string; value: string }[]
   price: string
+  priceMode?: PriceMode
   badge: string | null
 }
 
@@ -134,3 +137,24 @@ export const defaults: Product[] = [
 ]
 
 export const jacuzziId = "neptune-v2"
+export const pendingProductPhoto = "new"
+
+export function productPriceMode({ id, priceMode }: Pick<Product, "id" | "priceMode">): PriceMode {
+  return priceMode ?? (id === jacuzziId ? "fixed" : "from")
+}
+
+export function formatProductPrice(price: string, mode: PriceMode) {
+  return `${mode === "from" ? "Vanaf " : ""}€ ${price}`
+}
+
+const pricePattern = /^(?:\d{1,9}|\d{1,3}(?:\.\d{3}){1,2})(?:,\d{1,2})?$/
+
+export function normalizeProductPrice(value: string) {
+  const text = value.trim()
+  if (!pricePattern.test(text)) return null
+  const amount = Number(text.replaceAll(".", "").replace(",", "."))
+  return new Intl.NumberFormat("nl-BE", {
+    minimumFractionDigits: amount % 1 === 0 ? 0 : 2,
+    maximumFractionDigits: 2,
+  }).format(amount)
+}

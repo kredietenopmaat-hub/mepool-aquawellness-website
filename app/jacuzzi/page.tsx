@@ -1,7 +1,7 @@
 import Image from "next/image"
 import Link from "next/link"
 
-import { defaults, jacuzziId } from "@/lib/catalog"
+import { defaults, formatProductPrice, jacuzziId, productPriceMode } from "@/lib/catalog"
 import { readProduct } from "@/lib/catalog-store"
 
 export const dynamic = "force-dynamic"
@@ -19,7 +19,7 @@ export default async function JacuzziPage() {
           {product.title}
         </h2>
         <p className="text-lg text-muted-foreground">
-          Nu voor slechts € {product.price}!
+          {formatProductPrice(product.price, productPriceMode(product))}
         </p>
         {product.description && <p className="mt-4 max-w-3xl text-muted-foreground">{product.description}</p>}
         <div className="mt-8 space-y-6">
