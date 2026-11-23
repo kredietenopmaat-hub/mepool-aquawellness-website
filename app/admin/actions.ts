@@ -2,9 +2,10 @@
 
 import { randomUUID } from "node:crypto"
 import { BlobPreconditionFailedError, put } from "@vercel/blob"
+import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { z } from "zod"
-import { defaults, jacuzziId, type Product } from "@/lib/catalog"
+import { defaults, jacuzziId, normalizeProductPrice, pendingProductPhoto, type Product } from "@/lib/catalog"
 import { adminSignedIn, signInAdmin, signOutAdmin } from "@/lib/admin-session"
 import {
   googleBookingUrl, imagePrefix, productPath, readBooking, readDocument,
@@ -31,12 +32,11 @@ export async function logout() {
   redirect("/admin")
 }
 
-const pricePattern = /^(?:\d{1,8}|\d{1,3}(?:\.\d{3}){1,2})(?:,\d{1,2})?$/
 const textLine = z.string().min(1).max(160)
 const productFields = z.object({
   title: z.string().min(1).max(100),
   description: z.string().max(3000),
-  price: z.string().regex(pricePattern),
+  priceMode: z.enum(["fixed", "from"]),
   features: z.array(textLine).max(20),
   specifications: z.array(z.object({ label: textLine, value: textLine })).max(30),
 })
@@ -57,31 +57,27 @@ export async function updateProduct(_state: FormState, form: FormData): Promise<
   const fallback = defaults.find((product) => product.id === id)
   if (!fallback) return { error: "Product niet gevonden." }
 
-  const specifications = field(form, "specifications").split(/\r?\n/).filter((line) => line.trim()).map((line) => {
-    const separator = line.indexOf(":")
-    return separator < 0
-      ? { label: line.trim(), value: "" }
-      : { label: line.slice(0, separator).trim(), value: line.slice(separator + 1).trim() }
-  })
+  const labels = form.getAll("specLabel").map((name) => String(name).trim())
+  const values = form.getAll("specValue").map((value) => String(value).trim())
+  if (labels.length !== values.length) return { error: "Vul bij elke specificatie een parameter en een waarde in." }
+  const specifications = labels.map((label, index) => ({ label, value: values[index] }))
+    .filter(({ label, value }) => label || value)
+  const price = normalizeProductPrice(field(form, "price"))
+  if (!price) return { error: "Voer een geldig prijsbedrag in, bijvoorbeeld 2490 of 2.490,50." }
+
   const fields = productFields.safeParse({
     title: field(form, "title"),
     description: field(form, "description"),
-    price: field(form, "price"),
+    priceMode: field(form, "priceMode"),
     features: id === jacuzziId ? [] : field(form, "features").split(/\r?\n/).map((line) => line.trim()).filter(Boolean),
     specifications,
   })
   if (!fields.success) {
-    return { error: "Controleer de prijs (bijv. 2490 of 2.490,50) en gebruik voor elke specificatie ‘Naam: waarde’." }
+    return { error: "Controleer de productgegevens en vul bij elke specificatie een parameter en een waarde in." }
   }
   if (new Set(specifications.map(({ label }) => label.toLowerCase())).size !== specifications.length) {
     return { error: "Geef elke specificatie een unieke naam." }
   }
-
-  const amount = Number(fields.data.price.replaceAll(".", "").replace(",", "."))
-  const price = new Intl.NumberFormat("nl-BE", {
-    minimumFractionDigits: amount % 1 === 0 ? 0 : 2,
-    maximumFractionDigits: 2,
-  }).format(amount)
 
   const file = form.get("photo")
   const upload = file instanceof File && file.size > 0 ? file : null
@@ -106,23 +102,30 @@ export async function updateProduct(_state: FormState, form: FormData): Promise<
       return { error: "Dit product is intussen gewijzigd. Laad de pagina opnieuw en probeer het nog eens." }
     }
     const product = current?.value ?? fallback
-    const toRemove = new Set(form.getAll("removePhoto"))
-    const images = product.images.filter(({ src }) => !toRemove.has(src))
-    const photoCount = images.length + Number(Boolean(upload))
-    if (photoCount < 1 || photoCount > 8) return { error: "Een product moet één tot acht foto’s hebben." }
-
+    const order = form.getAll("photoOrder").map(String)
+    if (order.length < 1 || order.length > 8) {
+      return { error: "Een product moet één tot acht foto’s hebben." }
+    }
+    const photos = new Map(product.images.map((image) => [image.src, image]))
+    if (
+      new Set(order).size !== order.length ||
+      order.includes(pendingProductPhoto) !== Boolean(upload) ||
+      order.some((src) => src !== pendingProductPhoto && !photos.has(src))
+    ) {
+      return { error: "De fotovolgorde is ongeldig. Controleer de foto’s en probeer opnieuw." }
+    }
     if (upload) {
       const fileName = `${randomUUID()}.jpg`
       await put(imagePrefix + fileName, upload, { access: "private", contentType: "image/jpeg" })
-      const image = { src: `/media/producten/${fileName}`, alt: fields.data.title, width, height }
-      if (form.get("cover") === "on") images.unshift(image)
-      else images.push(image)
+      photos.set(pendingProductPhoto, { src: `/media/producten/${fileName}`, alt: fields.data.title, width, height })
     }
+    const images = order.map((src) => photos.get(src)!)
     await writeDocument(path, { ...product, ...fields.data, price, images }, etag)
   } catch (error) {
     return writeError(error)
   }
 
+  revalidatePath(id === jacuzziId ? "/jacuzzi" : "/producten")
   redirect(`/admin?product=${id}&saved=product`)
 }
 

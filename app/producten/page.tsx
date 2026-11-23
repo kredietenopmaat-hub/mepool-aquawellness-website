@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Check, ArrowRight } from "lucide-react"
 
-import { defaults, jacuzziId } from "@/lib/catalog"
+import { defaults, formatProductPrice, jacuzziId, productPriceMode } from "@/lib/catalog"
 import { readProduct } from "@/lib/catalog-store"
 
 export const dynamic = "force-dynamic"
@@ -106,9 +106,8 @@ export default async function ProductenPage() {
                   {/* Price & CTA */}
                   <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                     <div>
-                      <span className="text-sm text-muted-foreground">Vanaf</span>
                       <p className="text-3xl font-semibold text-foreground">
-                        &euro;{product.price}
+                        {formatProductPrice(product.price, productPriceMode(product))}
                       </p>
                     </div>
                     <div className="flex gap-3">
