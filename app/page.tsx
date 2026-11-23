@@ -23,7 +23,7 @@ export default function Home() {
       <InfraredSection />
       <Testimonials />
       <ContactSection />
-      <Footer />
+      <Footer showProductAdmin />
     </main>
   )
 }
