@@ -1,6 +1,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { Phone, Mail, MapPin } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 const footerLinks = {
   diensten: [
@@ -17,7 +18,7 @@ const footerLinks = {
   ],
 }
 
-export function Footer() {
+export function Footer({ showProductAdmin = false }: { showProductAdmin?: boolean }) {
   return (
     <footer className="bg-primary text-primary-foreground">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -141,7 +142,7 @@ export function Footer() {
             Alle rechten voorbehouden.
           </p>
 
-          <div className="flex items-center gap-6">
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
 
             <Link
               href="#"
@@ -156,6 +157,16 @@ export function Footer() {
             >
               Algemene Voorwaarden
             </Link>
+
+            {showProductAdmin && (
+              <Button
+                asChild
+                variant="outline"
+                className="border-primary-foreground/40 bg-transparent text-primary-foreground hover:bg-primary-foreground hover:text-primary"
+              >
+                <Link href="/admin">Productbeheer</Link>
+              </Button>
+            )}
 
           </div>
         </div>
