@@ -6,11 +6,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { formatProductPrice, jacuzziId, normalizeProductPrice, pendingProductPhoto, productPriceMode, type PriceMode, type Product } from "@/lib/catalog"
+import { formatProductPrice, jacuzziId, normalizeProductPrice, pendingProductPhoto, productCategories, productPriceMode, type PriceMode, type Product } from "@/lib/catalog"
 import { updateProduct } from "./actions"
 import { AdminForm } from "./admin-form"
 
-export function ProductEditor({ product, etag }: { product: Product; etag: string }) {
+export function ProductEditor({ product, etag, creating }: { product: Product; etag: string; creating: boolean }) {
   const [title, setTitle] = useState(product.title)
   const [price, setPrice] = useState(product.price)
   const [mode, setMode] = useState(productPriceMode(product))
@@ -70,6 +70,62 @@ export function ProductEditor({ product, etag }: { product: Product; etag: strin
     <AdminForm action={updateProduct} submit="Opslaan en publiceren" photo>
       <input type="hidden" name="id" value={product.id} />
       <input type="hidden" name="etag" value={etag} />
+      {creating && <input type="hidden" name="create" value="true" />}
+      <div className="space-y-2">
+        <Label htmlFor="category">Rubriek</Label>
+        <select id="category" name="category" defaultValue={product.category} required
+          className="h-9 w-full rounded-md border bg-background px-3 text-sm focus-visible:outline-2 focus-visible:outline-ring">
+          <option value="" disabled>Kies een rubriek</option>
+          {productCategories.map((category) => <option key={category}>{category}</option>)}
+        </select>
+        <p className="text-sm text-muted-foreground">Dit bepaalt waar het product op de pagina Producten verschijnt.</p>
+      </div>
+      <fieldset className="space-y-3">
+        <legend className="mb-2 font-medium">Productfoto’s</legend>
+        <div className="space-y-2">
+          <Input className="peer sr-only" ref={photoInput} id="photo" name="photo" type="file"
+            accept="image/jpeg,image/png,image/webp" aria-describedby="photo-help"
+            onChange={(event) => choosePhoto(event.target.files?.[0] ?? null)} />
+          <Button asChild className="cursor-pointer peer-focus-visible:ring-2 peer-focus-visible:ring-ring">
+            <Label htmlFor="photo">Foto uploaden</Label>
+          </Button>
+          {pendingPhoto && <p className="break-all text-sm">{pendingPhoto.name}</p>}
+          <p id="photo-help" className="text-sm text-muted-foreground">JPEG, PNG of WebP, maximaal 25 MB. Eén foto per keer, maximaal acht per product.</p>
+        </div>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+          {photoOrder.map((src, index) => (
+            <div key={src} className="space-y-2 rounded-md border p-2">
+              <div className="relative aspect-[4/3] overflow-hidden rounded bg-muted">
+                {photoSource(src) && (
+                  <Image src={photoSource(src)} alt={`Productfoto ${index + 1}`} fill sizes="(min-width: 768px) 240px, 45vw" className="object-cover" />
+                )}
+              </div>
+              <p className="text-sm font-medium">{index === 0 ? "Hoofdfoto" : `Foto ${index + 1}`}</p>
+              <input type="hidden" name="photoOrder" value={src} />
+              <div className="flex flex-wrap gap-1">
+                {index > 0 && (
+                  <Button type="button" variant="ghost" size="sm" onClick={() => movePhoto(src, 0)}>
+                    Maak hoofdfoto
+                  </Button>
+                )}
+                {index > 1 && (
+                  <Button type="button" variant="ghost" size="sm" aria-label={`Verplaats foto ${index + 1} naar voren`} onClick={() => movePhoto(src, index - 1)}>
+                    Naar voren
+                  </Button>
+                )}
+                {index < photoOrder.length - 1 && (
+                  <Button type="button" variant="ghost" size="sm" aria-label={`Verplaats foto ${index + 1} naar achteren`} onClick={() => movePhoto(src, index + 1)}>
+                    Naar achteren
+                  </Button>
+                )}
+                <Button type="button" variant="ghost" size="sm" aria-label={`Verwijder foto ${index + 1}`} onClick={() => removePhoto(src)}>
+                  Verwijderen
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </fieldset>
       <div className="space-y-2">
         <Label htmlFor="title">Productnaam</Label>
         <Input id="title" name="title" value={title} onChange={(event) => setTitle(event.target.value)} maxLength={100} required />
@@ -116,48 +172,6 @@ export function ProductEditor({ product, etag }: { product: Product; etag: strin
         }}>
           Specificatie toevoegen
         </Button>
-      </fieldset>
-      <fieldset className="space-y-3">
-        <legend className="mb-2 font-medium">Productfoto’s</legend>
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-          {photoOrder.map((src, index) => (
-            <div key={src} className="space-y-2 rounded-md border p-2">
-              <div className="relative aspect-[4/3] overflow-hidden rounded bg-muted">
-                {photoSource(src) && (
-                  <Image src={photoSource(src)} alt={`Productfoto ${index + 1}`} fill sizes="(min-width: 768px) 240px, 45vw" className="object-cover" />
-                )}
-              </div>
-              <p className="text-sm font-medium">{index === 0 ? "Hoofdfoto" : `Foto ${index + 1}`}</p>
-              <input type="hidden" name="photoOrder" value={src} />
-              <div className="flex flex-wrap gap-1">
-                {index > 0 && (
-                  <Button type="button" variant="ghost" size="sm" onClick={() => movePhoto(src, 0)}>
-                    Maak hoofdfoto
-                  </Button>
-                )}
-                {index > 1 && (
-                  <Button type="button" variant="ghost" size="sm" aria-label={`Verplaats foto ${index + 1} naar voren`} onClick={() => movePhoto(src, index - 1)}>
-                    Naar voren
-                  </Button>
-                )}
-                {index < photoOrder.length - 1 && (
-                  <Button type="button" variant="ghost" size="sm" aria-label={`Verplaats foto ${index + 1} naar achteren`} onClick={() => movePhoto(src, index + 1)}>
-                    Naar achteren
-                  </Button>
-                )}
-                <Button type="button" variant="ghost" size="sm" aria-label={`Verwijder foto ${index + 1}`} onClick={() => removePhoto(src)}>
-                  Verwijderen
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="photo">Voeg een foto toe</Label>
-          <Input ref={photoInput} id="photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp"
-            onChange={(event) => choosePhoto(event.target.files?.[0] ?? null)} />
-          <p className="text-sm text-muted-foreground">JPEG, PNG of WebP, maximaal 25 MB. Eén foto per keer, maximaal acht per product.</p>
-        </div>
       </fieldset>
       <fieldset className="grid gap-4 sm:grid-cols-2">
         <legend className="mb-2 font-medium">Prijs</legend>

@@ -6,15 +6,25 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Check, ArrowRight } from "lucide-react"
 
-import { defaults, formatProductPrice, jacuzziId, productPriceMode } from "@/lib/catalog"
-import { readProduct } from "@/lib/catalog-store"
+import { defaults, formatProductPrice, isAddedProductId, jacuzziId, productCategories, productPriceMode } from "@/lib/catalog"
+import { readAddedProducts, readProduct } from "@/lib/catalog-store"
 
 export const dynamic = "force-dynamic"
 
 export default async function ProductenPage() {
-  const products = await Promise.all(
-    defaults.filter((product) => product.id !== jacuzziId).map((product) => readProduct(product)),
-  )
+  const [existing, added] = await Promise.all([
+    Promise.all(defaults.map(readProduct)),
+    readAddedProducts().catch((error) => {
+      console.error("Could not load added Aqua Wellness products", error)
+      return []
+    }),
+  ])
+  const products = [...existing, ...added]
+  const rubrieken = productCategories.map((category) => ({
+    title: category,
+    anchor: `rubriek-${category.toLowerCase()}`,
+    products: products.filter((product) => product.category === category),
+  })).filter((rubriek) => rubriek.products.length > 0)
 
   return (
     <main className="min-h-screen bg-background">
@@ -31,6 +41,11 @@ export default async function ProductenPage() {
             <p className="text-lg lg:text-xl text-muted-foreground text-pretty">
               Ontdek ons uitgebreide assortiment van hoogwaardige producten. Van energie-efficiënte warmtepompen tot luxueuze infrarood cabines.
             </p>
+            <nav aria-label="Productrubrieken" className="mt-6 flex flex-wrap gap-2">
+              {rubrieken.map(({ title, anchor }) => (
+                <Button key={anchor} variant="outline" asChild><a href={`#${anchor}`}>{title}</a></Button>
+              ))}
+            </nav>
           </div>
         </div>
       </section>
@@ -39,93 +54,97 @@ export default async function ProductenPage() {
       <section className="py-16 lg:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="space-y-16 lg:space-y-24">
-            {products.map((product, index) => (
-              <div 
-                key={product.id} 
-                id={product.id}
-                className={`flex flex-col ${index % 2 === 0 ? 'lg:flex-row' : 'lg:flex-row-reverse'} gap-8 lg:gap-16 items-center`}
-              >
-                {/* Image */}
-                <div className="w-full lg:w-1/2">
-                  <div className="relative aspect-[4/3] rounded-lg overflow-hidden shadow-lg">
-                    <Image
-                      src={product.images[0].src}
-                      alt={product.images[0].alt}
-                      fill
-                      sizes="(min-width: 1024px) 50vw, 100vw"
-                      className="object-cover"
-                    />
-                    {product.badge && (
-                      <Badge className="absolute top-4 left-4 bg-accent text-accent-foreground">
-                        {product.badge}
-                      </Badge>
-                    )}
-                  </div>
-                  {product.images.length > 1 && (
-                    <div className="mt-3 grid grid-cols-3 gap-3">
-                      {product.images.slice(1).map((image) => (
-                        <Image key={image.src} {...image} className="aspect-[4/3] w-full rounded object-cover" />
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Content */}
-                <div className="w-full lg:w-1/2">
-                  <span className="text-sm font-medium text-accent uppercase tracking-wider">
-                    {product.category}
-                  </span>
-                  <h2 className="font-serif text-3xl lg:text-4xl font-semibold text-foreground mt-2 mb-4">
-                    {product.title}
-                  </h2>
-                  <p className="text-muted-foreground text-lg mb-6 text-pretty">
-                    {product.description}
-                  </p>
-                  
-                  {/* Features */}
-                  <ul className="space-y-3 mb-8">
-                    {product.features.map((feature, i) => (
-                      <li key={i} className="flex items-center gap-3 text-foreground">
-                        <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  {product.specifications.length > 0 && (
-                    <dl className="mb-8 space-y-2">
-                      {product.specifications.map(({ label, value }) => (
-                        <div key={label} className="grid grid-cols-2 gap-3">
-                          <dt className="font-medium">{label}</dt>
-                          <dd className="text-muted-foreground">{value}</dd>
+            {rubrieken.map(({ title, anchor, products }) => (
+              <section key={anchor} aria-labelledby={anchor}>
+                <h2 id={anchor} className="mb-8 scroll-mt-28 font-serif text-3xl font-semibold lg:scroll-mt-32">{title}</h2>
+                <div className="space-y-10">
+                  {products.map((product, index) => (
+                    <div
+                      key={product.id}
+                      id={product.id}
+                      className={`flex flex-col ${index % 2 === 0 ? 'lg:flex-row' : 'lg:flex-row-reverse'} gap-8 lg:gap-16 items-center scroll-mt-28 lg:scroll-mt-32`}
+                    >
+                      {/* Image */}
+                      <div className="w-full lg:w-1/2">
+                        <div className="relative aspect-[4/3] rounded-lg overflow-hidden shadow-lg">
+                          <Image
+                            src={product.images[0].src}
+                            alt={product.images[0].alt}
+                            fill
+                            sizes="(min-width: 1024px) 50vw, 100vw"
+                            className="object-cover"
+                          />
+                          {product.badge && (
+                            <Badge className="absolute top-4 left-4 bg-accent text-accent-foreground">
+                              {product.badge}
+                            </Badge>
+                          )}
                         </div>
-                      ))}
-                    </dl>
-                  )}
+                        {product.images.length > 1 && (
+                          <div className="mt-3 grid grid-cols-3 gap-3">
+                            {product.images.slice(1).map((image) => (
+                              <Image key={image.src} {...image} className="aspect-[4/3] w-full rounded object-cover" />
+                            ))}
+                          </div>
+                        )}
+                      </div>
 
-                  {/* Price & CTA */}
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                    <div>
-                      <p className="text-3xl font-semibold text-foreground">
-                        {formatProductPrice(product.price, productPriceMode(product))}
-                      </p>
+                      {/* Content */}
+                      <div className="w-full lg:w-1/2">
+                        <h3 className="font-serif text-3xl lg:text-4xl font-semibold text-foreground mt-2 mb-4">
+                          {product.title}
+                        </h3>
+                        <p className="text-muted-foreground text-lg mb-6 text-pretty">
+                          {product.description}
+                        </p>
+
+                        {/* Features */}
+                        <ul className="space-y-3 mb-8">
+                          {product.features.map((feature, i) => (
+                            <li key={i} className="flex items-center gap-3 text-foreground">
+                              <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                              <span>{feature}</span>
+                            </li>
+                          ))}
+                        </ul>
+
+                        {product.specifications.length > 0 && (
+                          <dl className="mb-8 space-y-2">
+                            {product.specifications.map(({ label, value }) => (
+                              <div key={label} className="grid grid-cols-2 gap-3">
+                                <dt className="font-medium">{label}</dt>
+                                <dd className="text-muted-foreground">{value}</dd>
+                              </div>
+                            ))}
+                          </dl>
+                        )}
+
+                        {/* Price & CTA */}
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                          <div>
+                            <p className="text-3xl font-semibold text-foreground">
+                              {formatProductPrice(product.price, productPriceMode(product))}
+                            </p>
+                          </div>
+                          <div className="flex gap-3">
+                            <Button asChild size="lg">
+                              <Link href="/#contact">
+                                Vraag offerte aan
+                                <ArrowRight className="w-4 h-4 ml-2" />
+                              </Link>
+                            </Button>
+                            {!isAddedProductId(product.id) && (
+                              <Button variant="outline" size="lg" asChild>
+                                <Link href={product.id === jacuzziId ? "/jacuzzi" : `/producten/${product.id}`}>Meer info</Link>
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex gap-3">
-                      <Button asChild size="lg">
-                        <Link href="/#contact">
-                          Vraag offerte aan
-                          <ArrowRight className="w-4 h-4 ml-2" />
-                        </Link>
-                      </Button>
-                      <Button variant="outline" size="lg" asChild>
-                        <Link href={`/producten/${product.id}`}>
-                          Meer info
-                        </Link>
-                      </Button>
-                    </div>
-                  </div>
+                  ))}
                 </div>
-              </div>
+              </section>
             ))}
           </div>
         </div>

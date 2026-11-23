@@ -5,7 +5,7 @@ import { BlobPreconditionFailedError, put } from "@vercel/blob"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { z } from "zod"
-import { defaults, jacuzziId, normalizeProductPrice, pendingProductPhoto, type Product } from "@/lib/catalog"
+import { defaults, isAddedProductId, jacuzziId, normalizeProductPrice, pendingProductPhoto, productCategories, type Product } from "@/lib/catalog"
 import { adminSignedIn, signInAdmin, signOutAdmin } from "@/lib/admin-session"
 import {
   googleBookingUrl, imagePrefix, productPath, readBooking, readDocument,
@@ -34,6 +34,7 @@ export async function logout() {
 
 const textLine = z.string().min(1).max(160)
 const productFields = z.object({
+  category: z.enum(productCategories),
   title: z.string().min(1).max(100),
   description: z.string().max(3000),
   priceMode: z.enum(["fixed", "from"]),
@@ -55,7 +56,11 @@ export async function updateProduct(_state: FormState, form: FormData): Promise<
 
   const id = field(form, "id")
   const fallback = defaults.find((product) => product.id === id)
-  if (!fallback) return { error: "Product niet gevonden." }
+  const creating = form.get("create") === "true"
+  if (creating ? !isAddedProductId(id) : !fallback && !isAddedProductId(id)) return { error: "Product niet gevonden." }
+
+  const category = field(form, "category")
+  if (!productFields.shape.category.safeParse(category).success) return { error: "Kies een rubriek." }
 
   const labels = form.getAll("specLabel").map((name) => String(name).trim())
   const values = form.getAll("specValue").map((value) => String(value).trim())
@@ -66,6 +71,7 @@ export async function updateProduct(_state: FormState, form: FormData): Promise<
   if (!price) return { error: "Voer een geldig prijsbedrag in, bijvoorbeeld 2490 of 2.490,50." }
 
   const fields = productFields.safeParse({
+    category,
     title: field(form, "title"),
     description: field(form, "description"),
     priceMode: field(form, "priceMode"),
@@ -83,6 +89,7 @@ export async function updateProduct(_state: FormState, form: FormData): Promise<
   const upload = file instanceof File && file.size > 0 ? file : null
   const width = Number(field(form, "width"))
   const height = Number(field(form, "height"))
+  if (creating && !upload) return { error: "Upload minstens één productfoto." }
   if (upload && (upload.type !== "image/jpeg" || upload.size > 1_800_000 ||
     ![width, height].every((size) => Number.isInteger(size) && size > 0 && size <= 1920))) {
     return { error: "De foto kon niet worden verwerkt. Kies een andere foto." }
@@ -98,10 +105,12 @@ export async function updateProduct(_state: FormState, form: FormData): Promise<
     const path = productPath(id)
     const current = await readDocument<Product>(path)
     const etag = field(form, "etag")
-    if ((current?.etag ?? "") !== etag) {
+    if ((creating && current) || (current?.etag ?? "") !== etag) {
       return { error: "Dit product is intussen gewijzigd. Laad de pagina opnieuw en probeer het nog eens." }
     }
-    const product = current?.value ?? fallback
+    const existing = current?.value ?? fallback
+    if (!creating && !existing) return { error: "Product niet gevonden." }
+    const product = existing ?? { id, badge: null, images: [] }
     const order = form.getAll("photoOrder").map(String)
     if (order.length < 1 || order.length > 8) {
       return { error: "Een product moet één tot acht foto’s hebben." }
@@ -125,7 +134,8 @@ export async function updateProduct(_state: FormState, form: FormData): Promise<
     return writeError(error)
   }
 
-  revalidatePath(id === jacuzziId ? "/jacuzzi" : "/producten")
+  revalidatePath("/producten")
+  if (id === jacuzziId) revalidatePath("/jacuzzi")
   redirect(`/admin?product=${id}&saved=product`)
 }
 
