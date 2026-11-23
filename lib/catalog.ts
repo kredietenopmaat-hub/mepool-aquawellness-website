@@ -5,6 +5,13 @@ export type ProductImage = {
   height: number
 }
 
+export const productCategories = ["Verwarming", "Veiligheid", "Wellness", "Onderhoud", "Waterbehandeling", "Jacuzzi"] as const
+export const addedProductPrefix = "product-"
+
+export function isAddedProductId(id: string) {
+  return /^product-[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(id)
+}
+
 export type PriceMode = "fixed" | "from"
 
 export type Product = {
