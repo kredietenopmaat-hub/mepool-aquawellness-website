@@ -6,90 +6,16 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Check, ArrowRight } from "lucide-react"
 
-const products = [
-  {
-    id: "warmtepompen",
-    category: "Verwarming",
-    title: "Warmtepompen",
-    description: "Energie-efficiënte warmtepompen voor een aangenaam verwarmde zwembad het hele jaar door. Onze premium warmtepompen besparen tot 80% op uw verwarmingskosten.",
-    image: "/images/heat-pump.jpg",
-    features: [
-      "Tot 80% energiebesparing",
-      "Fluisterstil in werking",
-      "Geschikt voor alle zwembadtypes",
-      "5 jaar garantie",
-      "Professionele installatie inbegrepen",
-    ],
-    priceFrom: "2.490",
-    badge: "Bestseller",
-  },
-  {
-    id: "rolluiken",
-    category: "Veiligheid",
-    title: "Zwembad Rolluiken",
-    description: "Veilige en elegante rolluiken die uw zwembad beschermen tegen vervuiling en de warmte vasthouden. Beschikbaar in automatische en manuele uitvoering.",
-    image: "/images/pool-cover.jpg",
-    features: [
-      "Automatisch of manueel bedienbaar",
-      "Kindveilig conform NF P90-308",
-      "Vermindert warmteverlies tot 70%",
-      "UV-bestendig materiaal",
-      "Op maat gemaakt",
-    ],
-    priceFrom: "3.990",
-    badge: "Populair",
-  },
-  {
-    id: "infrarood",
-    category: "Wellness",
-    title: "Infrarood Cabines",
-    description: "Premium infrarood cabines voor diepe ontspanning en gezondheidsvoordelen. Geniet van spa-kwaliteit wellness in uw eigen huis.",
-    image: "/images/infrared-cabin.jpg",
-    features: [
-      "Full-spectrum infrarood",
-      "Massief houten constructie",
-      "Bluetooth audiosysteem",
-      "Chromotherapie verlichting",
-      "Laag energieverbruik",
-    ],
-    priceFrom: "4.290",
-    badge: "Premium",
-  },
-  {
-    id: "robots",
-    category: "Onderhoud",
-    title: "Zwembadrobots",
-    description: "Automatische zwembadrobots voor moeiteloos schoon water. Onze robots reinigen bodem, wanden en waterlijn volledig autonoom.",
-    image: "/images/pool-robot.jpg",
-    features: [
-      "Volautomatische reiniging",
-      "Geschikt voor alle zwembadvormen",
-      "Zuigt fijn vuil en bladeren",
-      "Energiezuinig",
-      "Eenvoudig te onderhouden",
-    ],
-    priceFrom: "899",
-    badge: null,
-  },
-  {
-    id: "chemicalien",
-    category: "Waterbehandeling",
-    title: "Waterbehandeling",
-    description: "Complete productlijn voor perfecte waterkwaliteit. Van chloor en pH-regulatie tot anti-alg en flocculatiemiddelen.",
-    image: "/images/pool-chemicals.jpg",
-    features: [
-      "Professionele kwaliteit",
-      "Veilig voor huid en ogen",
-      "Eenvoudig te doseren",
-      "Langdurige werking",
-      "Advies op maat",
-    ],
-    priceFrom: "29",
-    badge: null,
-  },
-]
+import { defaults, jacuzziId } from "@/lib/catalog"
+import { readProduct } from "@/lib/catalog-store"
 
-export default function ProductenPage() {
+export const dynamic = "force-dynamic"
+
+export default async function ProductenPage() {
+  const products = await Promise.all(
+    defaults.filter((product) => product.id !== jacuzziId).map((product) => readProduct(product)),
+  )
+
   return (
     <main className="min-h-screen bg-background">
       <Header />
@@ -123,9 +49,10 @@ export default function ProductenPage() {
                 <div className="w-full lg:w-1/2">
                   <div className="relative aspect-[4/3] rounded-lg overflow-hidden shadow-lg">
                     <Image
-                      src={product.image}
-                      alt={product.title}
+                      src={product.images[0].src}
+                      alt={product.images[0].alt}
                       fill
+                      sizes="(min-width: 1024px) 50vw, 100vw"
                       className="object-cover"
                     />
                     {product.badge && (
@@ -134,6 +61,13 @@ export default function ProductenPage() {
                       </Badge>
                     )}
                   </div>
+                  {product.images.length > 1 && (
+                    <div className="mt-3 grid grid-cols-3 gap-3">
+                      {product.images.slice(1).map((image) => (
+                        <Image key={image.src} {...image} className="aspect-[4/3] w-full rounded object-cover" />
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Content */}
@@ -158,12 +92,23 @@ export default function ProductenPage() {
                     ))}
                   </ul>
 
+                  {product.specifications.length > 0 && (
+                    <dl className="mb-8 space-y-2">
+                      {product.specifications.map(({ label, value }) => (
+                        <div key={label} className="grid grid-cols-2 gap-3">
+                          <dt className="font-medium">{label}</dt>
+                          <dd className="text-muted-foreground">{value}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  )}
+
                   {/* Price & CTA */}
                   <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                     <div>
                       <span className="text-sm text-muted-foreground">Vanaf</span>
                       <p className="text-3xl font-semibold text-foreground">
-                        &euro;{product.priceFrom}
+                        &euro;{product.price}
                       </p>
                     </div>
                     <div className="flex gap-3">
@@ -198,8 +143,8 @@ export default function ProductenPage() {
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Button size="lg" variant="secondary" asChild>
-              <Link href="/#contact">
-                Gratis adviesgesprek
+              <Link href="/afspraak">
+                Boek een adviesgesprek
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Link>
             </Button>

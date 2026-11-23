@@ -54,7 +54,7 @@ export function Header() {
               <span>+32 471 040 416</span>
             </a>
             <Button asChild className="bg-white text-[#1a3a5c] hover:bg-white/90">
-              <Link href="#contact">Contacteer ons</Link>
+              <Link href="/afspraak">Boek een afspraak</Link>
             </Button>
           </div>
 
@@ -88,7 +88,7 @@ export function Header() {
                   <span>+32 123 456 789</span>
                 </a>
                 <Button asChild className="w-full bg-white text-[#1a3a5c] hover:bg-white/90">
-                  <Link href="#contact">Contacteer ons</Link>
+                  <Link href="/afspraak">Boek een afspraak</Link>
                 </Button>
               </div>
             </nav>
