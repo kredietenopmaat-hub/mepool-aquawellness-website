@@ -4,7 +4,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { addedProductPrefix, defaults, isAddedProductId, jacuzziId, type Product } from "@/lib/catalog"
+import { addedProductPrefix, defaults, isAddedProductId, jacuzziId, productCategories, type Product } from "@/lib/catalog"
 import { adminConfigured, adminSignedIn } from "@/lib/admin-session"
 import { defaultBookingUrl, productPath, readAddedProducts, readBooking, readDocument, storageConfigured } from "@/lib/catalog-store"
 import { login, logout, updateBooking } from "./actions"
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 }
 
 export default async function AdminPage({ searchParams }: {
-  searchParams: Promise<{ product?: string; saved?: string }>
+  searchParams: Promise<{ product?: string; saved?: string; category?: string }>
 }) {
   if (!adminConfigured()) return <AdminFrame><p>Het beheer is nog niet ingesteld.</p></AdminFrame>
 
@@ -46,7 +46,7 @@ export default async function AdminPage({ searchParams }: {
         <form action={logout}><Button variant="outline" type="submit">Afmelden</Button></form>
       </div>
       {!storageConfigured() ? <p>De Blob-opslag ontbreekt in deze omgeving. Controleer in Vercel of de privéopslag aan dit project en aan Production is gekoppeld.</p> : (
-        <CatalogEditor selectedId={query.product} saved={query.saved} />
+        <CatalogEditor selectedId={query.product} saved={query.saved} category={query.category} />
       )}
     </AdminFrame>
   )
@@ -62,7 +62,11 @@ function AdminFrame({ children }: { children: React.ReactNode }) {
   )
 }
 
-async function CatalogEditor({ selectedId, saved }: { selectedId?: string; saved?: string }) {
+async function CatalogEditor({ selectedId, saved, category }: {
+  selectedId?: string
+  saved?: string
+  category?: string
+}) {
   try {
     const [addedProducts, booking] = await Promise.all([readAddedProducts(), readBooking()])
     const products = [...defaults, ...addedProducts]
@@ -70,9 +74,10 @@ async function CatalogEditor({ selectedId, saved }: { selectedId?: string; saved
     const selected = products.find(({ id }) => id === selectedId) ?? defaults[0]
     const requestedId = selectedId && isAddedProductId(selectedId) ? selectedId : selected.id
     const document = creating ? null : await readDocument<Product>(productPath(requestedId))
+    const initialCategory = productCategories.find((item) => item === category) ?? ""
     const product: Product = creating
       ? {
-          id: addedProductPrefix + randomUUID(), title: "", category: "", description: "",
+          id: addedProductPrefix + randomUUID(), title: "", category: initialCategory, description: "",
           images: [], features: [], specifications: [], price: "", priceMode: "fixed", badge: null,
         }
       : document?.value ?? selected
@@ -81,9 +86,6 @@ async function CatalogEditor({ selectedId, saved }: { selectedId?: string; saved
     return (
       <div className="grid gap-8 lg:grid-cols-[15rem_1fr]">
         <nav aria-label="Producten" className="flex flex-wrap content-start gap-2 lg:flex-col">
-          <Button asChild variant={creating ? "default" : "outline"}>
-            <Link href="/admin?product=new" prefetch={false} aria-current={creating ? "page" : undefined}>Nieuw product</Link>
-          </Button>
           {products.map((item) => (
             <Button variant={!creating && item.id === product.id ? "default" : "outline"} asChild key={item.id}>
               <Link aria-current={!creating && item.id === product.id ? "page" : undefined} href={`/admin?product=${item.id}`}>{item.id === product.id ? product.title : item.title}</Link>
@@ -93,9 +95,18 @@ async function CatalogEditor({ selectedId, saved }: { selectedId?: string; saved
         <div className="space-y-10">
           <section className="rounded-xl border p-5 sm:p-7">
             <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
-              <h2 className="font-serif text-2xl font-semibold">{creating ? "Nieuw product" : product.title}</h2>
+              <h2 className="font-serif text-2xl font-semibold">
+                {creating ? "Nieuw product" : `Bewerk ${product.title}`}
+              </h2>
               {!creating && (
-                <Link className="text-sm text-primary hover:underline" href={product.id === jacuzziId ? "/jacuzzi" : `/producten#${product.id}`}>Bekijk productpagina</Link>
+                <div className="flex flex-wrap items-center gap-3">
+                  <Link className="text-sm text-primary hover:underline" href={product.id === jacuzziId ? "/jacuzzi" : `/producten#${product.id}`}>Bekijk productpagina</Link>
+                  <Button asChild>
+                    <a href={`/admin?product=new&category=${encodeURIComponent(product.category)}`}>
+                      Nieuw product in {product.category}
+                    </a>
+                  </Button>
+                </div>
               )}
             </div>
             {saved === "product" && <p role="status" className="mb-5 text-primary">Product gepubliceerd.</p>}
